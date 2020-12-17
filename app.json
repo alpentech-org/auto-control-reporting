@@ -1,0 +1,22 @@
+{
+  "name": "node-api-proxy",
+  "description": "Redirect your api-calls",
+  "keywords": [
+    "node",
+    "api",
+    "express",
+    "request",
+    "cors",
+    "REST"
+  ],
+  "logo": "http://i.imgur.com/BrKY4I3.png",
+  "repository": "https://github.com/jesperorb/node-api-proxy",
+  "env": {
+    "API_URL": {
+      "description": "The root-url to your api. For example if you want to call the GitHub API: 'https://api.github.com/'"
+    },
+      "APIKEY": {
+        "description": "The value of the API key"
+      },
+  },
+}

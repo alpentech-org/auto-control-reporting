@@ -1,0 +1,54 @@
+.part-accordion-header span {
+    color: white;
+}
+
+.part-accordion-header > .title:active {
+    font-weight: bold;
+}
+
+div.context-title p {
+    margin: 4px;
+    color: white;
+    font-size: 12px;
+}
+
+.spc-dim-container {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+}
+
+.spc-section {
+    flex-grow: 1;
+}
+
+.spc-section-graph-container {
+    flex-basis: 800px;
+    flex-shrink: 0;
+}
+
+.google-chart-tooltip {
+    margin: 16px;
+}
+
+div.general-part-section {
+    display: flex;
+    flex-direction: row;
+}
+
+div.reports-table-container {
+    flex-grow: 1;
+    flex-basis: 500px;
+    border: solid black 1px;
+    padding: 24px;
+    margin: 24px;
+}
+
+div.report-container {
+    flex-grow: 1;
+    border: solid black 1px;
+    padding: 24px;
+    margin: 24px;
+    overflow: auto;
+    max-height: 500px;
+}
