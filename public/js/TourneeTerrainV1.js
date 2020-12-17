@@ -167,6 +167,7 @@ function computePartReport(part, contextList) {
           mesCount: "Nombre de mesures total dans le contexte",
           nokCount: "Nombre de mesures NOK",
           okCount: "Nombre de mesures OK",
+          dateList: ["date de la mes 1", "date de la mes 2", ...]
         },
         contextId2: {...},
         ...
@@ -256,6 +257,7 @@ function computePartReport(part, contextList) {
               mesCount: 0,
               okCount: 0,
               nokCount: 0,
+              dateList: [],
             }
           }
         } else // Si l'objet @measureCount contient déjà une mesure du même pilotage
@@ -334,6 +336,8 @@ function computePartReport(part, contextList) {
         contextCount[pilotage.context].okCount += (pilotageConf ? 1 : 0);
         // Comptage des pilotages non conformes par contexte
         contextCount[pilotage.context].nokCount += (pilotageConf ? 0 : 1);
+        // Ajout de la date de mesure dans la liste
+        contextCount[pilotage.context].dateList.push(pilotage.date);
       });
       // Si l'objet @measureCount contient au moins une mesure
       if (Object.keys(measureCount).length) {
