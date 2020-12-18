@@ -587,18 +587,16 @@ function appendPartSection(part, contextList, dims, measureCount, contextCount, 
     <td>' + custRound(emptyNumber(measuresByDim[key].cpk), 2) + '</td>\
     <td>' + emptyNumber(measuresByDim[key].valNb) + '</td>';
 
-    let stringifiedValList = JSON.stringify(valList).replace(/"/gi, '\'');
-
     $('.part-report-content[data-partid="' + part._id + '"] .spc-section tbody').append('\
     <tr class="dim-content" data-dimid="' + key + '"\
       id="chart-' + key + '"\
-      data-datalist="' + stringifiedValList + '"\
       data-starttime="' + shiftInfo.start + '"\
       data-endtime="' + shiftInfo.end + '"\
       data-dimname="' + curDim.nom + '"\
       data-vaxismaxval="' + Number(vAxisMaxValue + 0.1 * Math.abs(vAxisMaxValue - vAxisMinValue)) + '"\
       data-vaxisminval="' + Number(vAxisMinValue - 0.1 * Math.abs(vAxisMaxValue - vAxisMinValue)) + '"\
       >' + lineString + '</tr>');
+    $('.part-report-content[data-partid="' + part._id + '"] .spc-section tbody tr[data-dimid="' + key + '"]').data('jsondatalist', valList);
 
     $('.dim-content[data-dimid="' + key + '"]').on('click', function(e) {
       $chartDataContainer = $('#chart-' + key);
@@ -636,7 +634,8 @@ function appendPartSection(part, contextList, dims, measureCount, contextCount, 
         type: 'string',
         role: 'tooltip'
       });
-      let dataImportedList = JSON.parse($chartDataContainer.data('datalist').replace(/'/gi, '\"').replace(/="/gi, '=\\"').replace(/">/gi, '\\">').replace(/d"Outil/gi, 'd\'Outil'));
+
+      let dataImportedList = $chartDataContainer.data('jsondatalist');
 
       $.each(dataImportedList, function(i, e) {
         e[0] = new Date(e[0])
