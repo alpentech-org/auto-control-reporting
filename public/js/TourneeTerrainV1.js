@@ -559,7 +559,7 @@ function appendPartSection(part, contextList, dims, measureCount, contextCount, 
         let htmlTooltip = "<div class='google-chart-tooltip'><p>Date : " + cDate.toLocaleString() + "</p><p>Mesure : " + Number(val) + "</p><p>Contexte : " + contextCount[mes.contexteId].contextName + "</p>" +
           (mes.commentaire ? ("<p>Commentaire : " + mes.commentaire + "</p>") : "") +
           "</div>";
-          let pointStyle = ["Après Changement d'Outil", "Démarrage Production"].includes(contextCount[mes.contexteId].contextName) ? 'point { size: 11; shape-type: triangle; fill-color: #ffa500; }' : null
+        let pointStyle = ["Après Changement d'Outil", "Démarrage Production"].includes(contextCount[mes.contexteId].contextName) ? 'point { size: 11; shape-type: triangle; fill-color: #ffa500; }' : null
         if (curDim.tolerance_min) {
           valList.push([new Date(mes.date), Number(val), htmlTooltip, pointStyle, curDim.nominal, "Nominal : " + curDim.nominal, minTol, "Tolérance Min : " + minTol, maxTol, "Tolérance Max : " + maxTol]);
         } else {
