@@ -337,7 +337,10 @@ function computePartReport(part, contextList) {
         // Comptage des pilotages non conformes par contexte
         contextCount[pilotage.context].nokCount += (pilotageConf ? 0 : 1);
         // Ajout de la date de mesure dans la liste
-        contextCount[pilotage.context].dateList.push(pilotage.date);
+        contextCount[pilotage.context].dateList.push({
+          date: pilotage.date,
+          conformity: pilotageConf
+        });
       });
       // Si l'objet @measureCount contient au moins une mesure
       if (Object.keys(measureCount).length) {
@@ -442,7 +445,10 @@ function appendPartSection(part, contextList, dims, measureCount, contextCount, 
     <div class="part-accordion-header" style="background-color: ' + (nokCount ? "red" : (mesTotalCount ? "green" : "grey")) + ';">\
     <span class="title">' + part.nom + '</span>\
     <p><span>Nombre de mesures : ' + mesTotalCount + (!nokCount ? "" : (' dont ' + nokCount + ' mesure(s) non conforme(s)')) + '</span></p>\
+    <div style="display:flex;flex-direction:row;align-items:center">\
     <div class="context-title" data-partid="' + part._id + '"></div>\
+    <div id="timeline-container-' + part._id + '" class="title-timeline" data-partid="' + part._id + '" style="flex-grow:1;" data-starttime="' + shiftInfo.start + '" data-endtime="' + shiftInfo.end + '"></div>\
+    </div>\
     </div>\
     <div class="part-report-content" data-partid="' + part._id + '">\
       <div class="part-subaccordion-header">Aperçu Général</div>\
@@ -467,6 +473,10 @@ function appendPartSection(part, contextList, dims, measureCount, contextCount, 
     </div>\
   </div>');
 
+  $('.title-timeline').on('click', e => {
+    e.stopPropagation();
+  })
+
   // Petit rapport du nombre de controles par contexte
   let contextHtml = "";
   $.each(Object.keys(contextCount), function(index, key) {
@@ -474,6 +484,132 @@ function appendPartSection(part, contextList, dims, measureCount, contextCount, 
     contextHtml += '<p>' + c.contextName + ' : ' + c.mesCount + (c.nokCount ? ' (dont ' + c.nokCount + ' NOK)' : '') + '</p>'
   });
   $('.context-title[data-partid="' + part._id + '"]').html(contextHtml);
+  $('.title-timeline[data-partid="' + part._id + '"]').data('contextlist', contextCount);
+
+
+  var contextData = new google.visualization.DataTable();
+
+  contextData.addColumn('date', 'Date');
+  contextData.addColumn('number', 'Production');
+  contextData.addColumn({
+    type: 'string',
+    role: 'style',
+  });
+  contextData.addColumn('number', 'Avant Changement d\'Outils');
+  contextData.addColumn({
+    type: 'string',
+    role: 'style',
+  });
+  contextData.addColumn('number', 'Après Changement d\'Outils');
+  contextData.addColumn({
+    type: 'string',
+    role: 'style',
+  });
+  contextData.addColumn('number', 'Démarrage Production');
+  contextData.addColumn({
+    type: 'string',
+    role: 'style',
+  });
+  let definedContextList = {
+    'Production': {
+      index: 1,
+    },
+    'Avant Changement d\'Outil': {
+      index: 3,
+    },
+    'Après Changement d\'Outil': {
+      index: 5,
+    },
+    'Démarrage Production': {
+      index: 7,
+    },
+  };
+  let cindex = 9;
+  let contextDataList = [];
+  let styleList = {
+
+  }
+  $.each(Object.keys(contextCount), function(index, key) {
+    let cont = contextCount[key];
+    if (!Object.keys(definedContextList).includes(cont.contextName)) {
+      definedContextList[cont.contextName] = {
+        index: cindex,
+        style: "",
+      };
+      contextData.addColumn('number', cont.contextName);
+      contextData.addColumn({
+        type: 'string',
+        role: 'style',
+      });
+      cindex += 2;
+    }
+  });
+  $.each(Object.keys(contextCount), function(index, key) {
+    let cont = contextCount[key];
+    cont.dateList.forEach((date) => {
+      let row = createArray(cindex, null);
+      row[0] = new Date(date.date);
+      row[definedContextList[cont.contextName].index] = definedContextList[cont.contextName].index;
+      row[definedContextList[cont.contextName].index + 1] = (cont.contextName == "Production") ? (date.conformity ? '' : 'point {fill-color: #ff0000; size: 10;}') :"";
+      contextDataList.push(row);
+    });
+  });
+  contextData.addRows(contextDataList);
+
+  let container = document.getElementById('timeline-container-' + part._id);
+
+  let options = {
+    width: 800,
+    height: 100,
+    // title: $chartDataContainer.data('dimname'),
+    hAxis: {
+      minValue: new Date($(container).data('starttime')),
+      maxValue: new Date($(container).data('endtime')),
+    },
+    // vAxis: {
+    //   title: 'Mesure',
+    //   viewWindow: {
+    //     min: Number($chartDataContainer.data('vaxisminval')),
+    //     max: Number($chartDataContainer.data('vaxismaxval'))
+    //   },
+    // },
+    seriesType: 'scatter',
+    chartArea: {
+      left: 0,
+      top: 0,
+      width: '60%',
+      height: '80%',
+    },
+    legend: {
+      position: 'right',
+      maxLines: 6
+    },
+    series: {
+      0: {
+        color: '#00b3ff',
+        pointShape: 'circle',
+        pointSize: 6,
+      },
+      1: {
+        color: '#035afc',
+        pointShape: 'square',
+        pointSize: 12,
+      },
+      2: {
+        color: '#ffa500',
+        pointShape: 'triangle',
+        pointSize: 12,
+      },
+      3: {
+        color: '#ffee00',
+        pointShape: 'star',
+        pointSize: 12,
+      },
+    },
+  };
+
+  let chart = new google.visualization.ComboChart(container);
+  chart.draw(contextData, options);
 
   $('.part-report[data-partid="' + part._id + '"]').accordion({
     header: '.part-accordion-header',
@@ -515,8 +651,7 @@ function appendPartSection(part, contextList, dims, measureCount, contextCount, 
         let values = "";
         let dim = dims.find(c => c._id == mes.measure.coteId);
         $.each(mes.measure.values, function(index, val) {
-          values += ((values ? ";" : "") + val)
-          values += ((values ? ";" : "") + custRound(val,3));
+          values += ((values ? ";" : "") + custRound(val, 3));
         });
         $('div.report-container[data-partid="' + part._id + '"]').append('<p class="report-line"  style="color: ' + (mes.measureConformity ? "auto" : "red") + '">\
         ' + dim.nom + ' : <b>' + values + '</b> [min : ' + custRound(Number(dim.nominal) + Number(dim.tolerance_min), 3) + ' / max : ' + custRound(Number(dim.nominal) + Number(dim.tolerance_max), 3) + ' ]' + '\
@@ -716,4 +851,15 @@ function custRound(real, nb) {
   } else {
     return ""
   }
+}
+
+function createArray(len, itm) {
+  var arr1 = [itm],
+    arr2 = [];
+  while (len > 0) {
+    if (len & 1) arr2 = arr2.concat(arr1);
+    arr1 = arr1.concat(arr1);
+    len >>>= 1;
+  }
+  return arr2;
 }
