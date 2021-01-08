@@ -516,6 +516,7 @@ function appendPartSection(part, contextList, dims, measureCount, contextCount, 
         let dim = dims.find(c => c._id == mes.measure.coteId);
         $.each(mes.measure.values, function(index, val) {
           values += ((values ? ";" : "") + val)
+          values += ((values ? ";" : "") + custRound(val,3));
         });
         $('div.report-container[data-partid="' + part._id + '"]').append('<p class="report-line"  style="color: ' + (mes.measureConformity ? "auto" : "red") + '">\
         ' + dim.nom + ' : <b>' + values + '</b> [min : ' + custRound(Number(dim.nominal) + Number(dim.tolerance_min), 3) + ' / max : ' + custRound(Number(dim.nominal) + Number(dim.tolerance_max), 3) + ' ]' + '\
