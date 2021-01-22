@@ -116,7 +116,7 @@ function computePartReport(part, contextList) {
 
     // Récupération des mesures dans la plage horaire donnée (@shiftInfo)
     let measuresRequest = {
-      "url": "/api/mesurehistoriques?q={\"$and\" : [{\"date\": { \"$gt\" : \"" + shiftInfo.start + "\"}},{\"date\": { \"$lt\" : \"" + shiftInfo.end + "\"}},{\"pieceId\": { \"$eq\" : \"" + part._id + "\"}}]}",
+      "url": "/api/mesureHistoriques?q={\"$and\" : [{\"date\": { \"$gt\" : \"" + shiftInfo.start + "\"}},{\"date\": { \"$lt\" : \"" + shiftInfo.end + "\"}},{\"pieceId\": { \"$eq\" : \"" + part._id + "\"}}]}",
       "method": "GET",
       "timeout": 0,
       "headers": {
