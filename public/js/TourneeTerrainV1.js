@@ -553,7 +553,7 @@ function appendPartSection(part, contextList, dims, measureCount, contextCount, 
       let row = createArray(cindex, null);
       row[0] = new Date(date.date);
       row[definedContextList[cont.contextName].index] = definedContextList[cont.contextName].index;
-      row[definedContextList[cont.contextName].index + 1] = (cont.contextName == "Production") ? (date.conformity ? '' : 'point {fill-color: #ff0000; size: 10;}') :"";
+      row[definedContextList[cont.contextName].index + 1] = (cont.contextName == "Production") ? (date.conformity ? '' : 'point {fill-color: #ff0000; size: 10;}') : "";
       contextDataList.push(row);
     });
   });
