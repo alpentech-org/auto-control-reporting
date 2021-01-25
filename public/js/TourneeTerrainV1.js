@@ -1,5 +1,4 @@
-let startTime = "2020-08-15T00:00:00.000Z";
-let endTime = "2020-08-25T00:00:00.000Z";
+let adjustmentContextList = ["Après Changement d'Outil", "Démarrage Production"];
 
 $(function() {
   // Initialisation DatePicker
@@ -287,7 +286,7 @@ function computePartReport(part, contextList) {
         let valList = []
         $.each(dim.measures, function(i, mes) {
           let context = contextList.find(e => e._id == mes.contexteId)
-          if (!["Après Changement d'Outil", "Démarrage Production"].includes(context.nom)) {
+          if (!adjustmentContextList.includes(context.nom)) {
             valList = valList.concat(mes.values);
           }
         });
@@ -435,7 +434,7 @@ function appendPartSection(part, contextList, dims, measureCount, contextCount, 
     // Comptage total des mesures
     mesTotalCount += contextCount[ctxtId].mesCount;
     // Comptage des mesures NC n'appartenant pas à la liste suivante
-    if (!["Après Changement d'Outil", "Démarrage Production"].includes(contextCount[ctxtId].contextName)) {
+    if (!adjustmentContextList.includes(contextCount[ctxtId].contextName)) {
       nokCount += contextCount[ctxtId].nokCount;
     }
   });
@@ -695,7 +694,7 @@ function appendPartSection(part, contextList, dims, measureCount, contextCount, 
         let htmlTooltip = "<div class='google-chart-tooltip'><p>Date : " + cDate.toLocaleString() + "</p><p>Mesure : " + Number(val) + "</p><p>Contexte : " + contextCount[mes.contexteId].contextName + "</p>" +
           (mes.commentaire ? ("<p>Commentaire : " + mes.commentaire + "</p>") : "") +
           "</div>";
-        let pointStyle = ["Après Changement d'Outil", "Démarrage Production"].includes(contextCount[mes.contexteId].contextName) ? 'point { size: 11; shape-type: triangle; fill-color: #ffa500; }' : null
+        let pointStyle = adjustmentContextList.includes(contextCount[mes.contexteId].contextName) ? 'point { size: 11; shape-type: triangle; fill-color: #ffa500; }' : null
         if (curDim.tolerance_min) {
           valList.push([new Date(mes.date), Number(val), htmlTooltip, pointStyle, curDim.nominal, "Nominal : " + curDim.nominal, minTol, "Tolérance Min : " + minTol, maxTol, "Tolérance Max : " + maxTol]);
         } else {
