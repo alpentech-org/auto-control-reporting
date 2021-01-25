@@ -274,10 +274,14 @@ function computePartReport(part, contextList) {
           measuresByDim[mes.coteId] = {
             dim: dims.find(c => c._id == mes.coteId), // stockage de la cote en tant qu'objet
             measures: [mes], // initialisation de la liste des mesures
+            nc: (mesConf ? [] : [mes]), // initialisation de la liste des mesures NC pour pareto
           };
         } else {
           // Si la cote a déjà une mesure de saisie dans la liste on vient rajouter la mesure actuelle à cette liste
           measuresByDim[mes.coteId].measures.push(mes);
+          if (!mesConf) {
+            measuresByDim[mes.coteId].nc.push(mes) // incrément de la liste des mesures NC pour pareto
+          }
         }
 
       });
