@@ -473,6 +473,8 @@ function appendPartSection(part, contextList, dims, measureCount, contextCount, 
         </div>\
         <div id="spc-section-graph-container-' + part._id + '" class="spc-section-graph-container"></div>\
       </div>\
+      <div class="part-subaccordion-header" id="pareto-header-' + part._id + '">Pareto des défauts</div>\
+      <div class="pareto-section" id="pareto-container-' + part._id + '"></div>\
     </div>\
   </div>');
 
@@ -610,6 +612,9 @@ function appendPartSection(part, contextList, dims, measureCount, contextCount, 
       },
     },
   };
+
+  // Tracé du Pareto des défauts par cote
+  drawParetoChart(getParetoData(measuresByDim, dims, contextList), getControlMeasureNb(measureCount), part._id);
 
   let chart = new google.visualization.ComboChart(container);
   chart.draw(contextData, options);
@@ -829,6 +834,122 @@ function appendPartSection(part, contextList, dims, measureCount, contextCount, 
     pageLength: 10,
   });
 
+}
+
+// A partir de l'objet @measureCount, calcule le nombre de pilotages de production (hors chgmt outil, démarrage, ...)
+function getControlMeasureNb(measureCount) {
+  let nb = 0;
+  $.each(Object.keys(measureCount), function(i, k) {
+    nb += adjustmentContextList.includes(measureCount[k].contextName) ? 0 : 1;
+  });
+  return nb;
+}
+
+// Aggrégation des données nécessaire à la construction du pareto des défauts relevés
+function getParetoData(measuresByDim, dims, contextList) {
+  // Création de l'objet vide
+  let ncObject = {};
+  // On boucle sur chaque cote de @measuresByDim
+  $.each(Object.keys(measuresByDim), function(index, dimId) {
+    // On récupère les valeurs nc
+    let ncList = measuresByDim[dimId].nc;
+    // S'il y en a
+    if (ncList.length) {
+      // On récupère l'objet @dim concerné
+      let curDim = dims.find(d => d._id == dimId);
+      // On boucle sur les mesures NC
+      ncList.forEach(e => {
+        // On stocke leur contexte
+        let curContext = contextList.find(c => c._id === e.contexteId)
+        // Si c'est un contexte de production
+        if (!adjustmentContextList.includes(curContext.nom)) {
+          // Si le compteur de la cote a déjà été créé
+          if (Object.keys(ncObject).includes(dimId)) {
+            // On incrémente le compteur et on ajoute la date/contexte de la mesure ajoutée
+            ncObject[dimId].nb += 1;
+            ncObject[dimId].dateList.push({
+              date: e.date,
+              context: curContext,
+            });
+          } else {
+            // Sinon on crée la propriété liée à la cote et on l'initialise
+            ncObject[dimId] = {
+              nb: 1, // Nombre de NC pour la cote
+              dim: curDim, // On récupère ici l'objet @dim
+              dateList: [{ // On stocke la liste des dates/contextes qu'on incrémente au fur et à mesure
+                date: e.date,
+                context: curContext,
+              }],
+            };
+          }
+        }
+      });
+    }
+  });
+  return ncObject;
+}
+
+// Construction de la dataTable pour graphe de pareto et tracé dans la bonne zone
+function drawParetoChart(paretoData, totalMesNb, partId) {
+
+  // Si le pareto contient des données
+  if (Object.keys(paretoData).length) {
+    // Création des colonnes de la table
+    let paretoChartDataTable = new google.visualization.DataTable();
+    paretoChartDataTable.addColumn('string', 'Cote');
+    paretoChartDataTable.addColumn('number', 'Non-conformités');
+    paretoChartDataTable.addColumn({
+      type: 'string',
+      role: 'tooltip',
+      p: {
+        'html': true
+      },
+    });
+
+    // On initialise la dataList du graphe
+    let dataList = [];
+    // On boucle sur les données du pareto pour construire les données à afficher
+    $.each(Object.keys(paretoData), function(index, key) {
+      // Création d'un tooltip listant les rapports mauvais par date / contexte
+      let htmlTooltip = '<div style="padding: 6px;"><p><b>' + paretoData[key].dim.nom + '</b></p><p>Mesures NC : <b>' + custRound(Number(paretoData[key].nb) / totalMesNb * 100, 1) + '%</b></p><p><b>Liste :</b></p>';
+      paretoData[key].dateList.forEach((item, i) => {
+        let d = moment(item.date).format('YYYY-MM-DD à HH:mm:ss');
+        htmlTooltip += '<p>Heure : ' + d + ' | Contexte : ' + item.context.nom + '</p>';
+      });
+      htmlTooltip += '</div>';
+      // Insertion de la ligne dans le graphe
+      dataList.push([
+        paretoData[key].dim.nom,
+        custRound(Number(paretoData[key].nb) / totalMesNb, 3),
+        htmlTooltip
+      ]);
+    });
+    // Tri sur le nombre d'occurence des défauts
+    dataList.sort((a, b) => (a[1] > b[1] ? -1 : 1));
+
+    paretoChartDataTable.addRows(dataList);
+    let options = {
+      width: 800,
+      height: 600,
+      //title: $chartDataContainer.data('dimname'),
+      tooltip: {
+        isHtml: true
+      },
+      vAxis: {
+        format: '#%',
+        minValue: 0,
+        maxValue: dataList[0][1],
+      },
+    };
+
+    // Récupération du container et création du graphe
+    let container = document.getElementById('pareto-container-' + partId);
+    let chart = new google.visualization.ColumnChart(container);
+    chart.draw(paretoChartDataTable, options);
+  } else {
+    // On masque l'affichage html du pareto
+    $("#pareto-header-" + partId).hide();
+  }
 }
 
 function getStandardDeviation(array) {
